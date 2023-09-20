@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model, hashers
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
+from rest_framework.exceptions import PermissionDenied
 from rest_framework_simplejwt.tokens import RefreshToken, SlidingToken
 
 from .utils import verify_singature, validate_nonce
@@ -50,10 +51,15 @@ class WalletTokenObtainSerializer(serializers.Serializer):
             raise KeyError("Id must be passed in context")
         wallet = get_object_or_404(WalletAuthModel, pk=pk)
         signature = attrs["signature"]
-        if validate_nonce(wallet) and verify_singature(wallet.nonce, signature):
-            wallet.nonce_stale = True
-            wallet.save()
-            self.user = wallet.user
+        if not validate_nonce(wallet):
+            raise PermissionDenied(detail="invalid nonce")
+
+        if not verify_singature(wallet.nonce, signature):
+            raise PermissionDenied(detail="invalid signature")
+
+        wallet.nonce_stale = True
+        wallet.save()
+        self.user = wallet.user
         return {}
 
     @classmethod
