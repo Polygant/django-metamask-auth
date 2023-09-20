@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model, hashers
+from django.core.exceptions import BadRequest
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import update_last_login
 from rest_framework import serializers
@@ -54,7 +55,9 @@ class WalletTokenObtainSerializer(serializers.Serializer):
         if not validate_nonce(wallet):
             raise PermissionDenied(detail="invalid nonce")
 
-        if not verify_singature(wallet.nonce, signature):
+        try:
+            verify_singature(wallet.nonce, signature)
+        except BadRequest:
             raise PermissionDenied(detail="invalid signature")
 
         wallet.nonce_stale = True
