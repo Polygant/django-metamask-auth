@@ -1,3 +1,4 @@
+import binascii
 import random
 import string
 from web3.auto import w3
@@ -12,7 +13,7 @@ def verify_singature(nonce, signature):
     try:
         w3.eth.account.recover_message(encode_defunct(text=nonce), signature=signature)
         return True
-    except BadSignature:
+    except (BadSignature, binascii.Error):
         raise BadRequest()
 
 

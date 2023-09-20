@@ -21,10 +21,9 @@ class MetaMaskCreateRetrieveViewSet(CreateRetrieveViewset):
 
     def retrieve(self, request, *args, **kwargs):
         wallet = self.get_object()
-        if wallet.nonce_stale:
-            wallet.nonce = generate_random()
-            wallet.nonce_stale = False
-            wallet.save()
+        wallet.nonce = generate_random()
+        wallet.nonce_stale = False
+        wallet.save()
         return super().retrieve(request, *args, **kwargs)
 
 
